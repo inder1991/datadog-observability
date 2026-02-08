@@ -1,0 +1,23 @@
+# Helm
+charts/
+*.tgz
+Chart.lock
+
+# Secrets
+secrets/*-unsealed.yaml
+secrets/*.key
+*.secret
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+tmp/
+*.tmp
