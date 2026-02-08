@@ -3,12 +3,9 @@ kind: DatadogAgent
 metadata:
   name: datadog
   namespace: datadog
-  labels:
-    env: production
-    managed-by: platform-engineering
 spec:
   global:
-    clusterName: OVERRIDE-IN-KUSTOMIZATION
+    clusterName: prod-cluster-1
     site: datadoghq.com
     
     credentials:
@@ -21,60 +18,35 @@ spec:
     
     tags:
       - env:production
-      - platform:openshift
-      - managed-by:platform-engineering
-      - compliance:enabled
+      - region:primary
+      - cluster:prod-cluster-1
+      - datacenter:dc1
     
     criSocketPath: /var/run/crio/crio.sock
-    
     kubelet:
       tlsVerify: false
   
   features:
     apm:
       enabled: true
-      hostPortConfig:
-        enabled: true
-        port: 8126
-      unixDomainSocketConfig:
-        enabled: true
-    
     logCollection:
       enabled: true
       containerCollectAll: false
-      containerCollectUsingFiles: true
       autoMultiLineDetection: true
-    
     liveProcessCollection:
       enabled: true
-    
-    liveContainerCollection:
-      enabled: true
-    
     orchestratorExplorer:
       enabled: true
-      scrubContainers: true
-    
     npm:
       enabled: true
-      enableConntrack: true
-      collectDNSStats: true
-    
-    eventCollection:
-      collectKubernetesEvents: true
-    
-    # Security monitoring
     cspm:
       enabled: true
-      checkInterval: 20m
-    
     cws:
       enabled: true
-      syscallMonitorEnabled: false  # Performance consideration
+      syscallMonitorEnabled: false
   
   override:
     nodeAgent:
-      # Production resources
       resources:
         requests:
           cpu: 500m
@@ -82,37 +54,16 @@ spec:
         limits:
           cpu: 1000m
           memory: 1Gi
-      
       tolerations:
         - operator: Exists
-      
-      hostNetwork: true
-      hostPID: true
-      
-      securityContext:
-        runAsUser: 0
-        privileged: true
-      
-      # Priority class
       priorityClassName: system-node-critical
-      
-      # Update strategy
       updateStrategy:
         type: RollingUpdate
         rollingUpdate:
-          maxUnavailable: 5%
-      
-      env:
-        - name: DD_LOG_LEVEL
-          value: info
-        - name: DD_CONTAINER_EXCLUDE
-          value: "name:datadog-agent"
-        - name: DD_CONTAINER_INCLUDE
-          value: "kube_namespace:^(default|production-.*|apps-.*)$"
+          maxUnavailable: 10%
     
     clusterAgent:
-      replicas: 3  # HA with 3 replicas
-      
+      replicas: 3
       resources:
         requests:
           cpu: 500m
@@ -120,30 +71,15 @@ spec:
         limits:
           cpu: 1000m
           memory: 1Gi
-      
-      # Pod Disruption Budget
-      podDisruptionBudget:
-        minAvailable: 2
-      
       metricsProvider:
         enabled: true
-        useDatadogMetrics: true
-        wpaController: true
-      
       admissionController:
         enabled: true
         mutateUnlabelled: false
-      
-      clusterChecksEnabled: true
-      
-      env:
-        - name: DD_LOG_LEVEL
-          value: info
     
     clusterChecksRunner:
       enabled: true
       replicas: 2
-      
       resources:
         requests:
           cpu: 200m
