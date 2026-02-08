@@ -1,0 +1,70 @@
+# Datadog Operator Base Configuration
+
+datadog-operator:
+  # Operator deployment settings
+  replicaCount: 2
+  
+  # Operator image
+  image:
+    repository: gcr.io/datadoghq/operator
+    tag: 1.9.0
+    pullPolicy: IfNotPresent
+  
+  # Resources for operator pod
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  
+  # Enable webhooks for validation
+  webhooks:
+    enabled: true
+  
+  # Install CRDs
+  installCRDs: true
+  
+  # Metrics server
+  metricsServer:
+    enabled: true
+    port: 8383
+  
+  # Security context
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+  
+  # Pod security
+  podSecurityContext:
+    fsGroup: 2000
+  
+  # Service account
+  serviceAccount:
+    create: true
+    name: datadog-operator
+  
+  # RBAC
+  rbac:
+    create: true
+  
+  # Node selector (optional)
+  nodeSelector: {}
+  
+  # Tolerations
+  tolerations: []
+  
+  # Affinity
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                    - datadog-operator
+            topologyKey: kubernetes.io/hostname
