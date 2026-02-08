@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: datadog-agent-staging
+  namespace: argocd
+  labels:
+    component: agent
+    env: staging
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform-observability
+  
+  source:
+    repoURL: https://github.com/your-org/datadog-operator-deployment.git  # CHANGE THIS
+    targetRevision: main
+    path: agents/staging
+  
+  destination:
+    server: https://api.staging-cluster-1.example.com:6443  # CHANGE THIS
+    namespace: datadog
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        maxDuration: 3m
+  
+  syncWaves:
+    - wave: 10
