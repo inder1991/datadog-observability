@@ -1,35 +1,42 @@
-# Datadog Observability Infrastructure
+# Datadog Operator Deployment
 
-GitOps repository for Datadog Agent deployment across kubernetes clusters.
+GitOps repository for Datadog Operator and DatadogAgent CRD management across multiple clusters.
 
-## Repository Structure
-```
-datadog-observability/
-├── base/                    # Base Helm configurations
-├── overlays/                # Environment-specific values
+## Architecture┌─────────────────────────────────────────┐
+│         Datadog Operator                │
+│  (Manages DatadogAgent Lifecycle)       │
+└─────────────────────────────────────────┘
+│
+▼
+┌─────────────────────────────────────────┐
+│      DatadogAgent CRD                   │
+│  (Declarative Agent Configuration)      │
+└─────────────────────────────────────────┘
+│
+▼
+┌─────────────────────────────────────────┐
+│   DaemonSet + Deployments               │
+│  (Actual Datadog Agent Pods)            │
+└─────────────────────────────────────────┘
+
+## Repository Structuredatadog-operator-deployment/
+├── operator/                    # Operator installation
+│   ├── base/                   # Base operator config
+│   └── overlays/               # Environment-specific
+├── agents/                      # DatadogAgent CRDs
 │   ├── dev/
 │   ├── staging/
 │   └── production/
-├── argocd/                  # ArgoCD Applications
-├── secrets/                 # Sealed secrets
-└── docs/                    # Documentation
-```
+├── argocd/                      # ArgoCD Applications
+├── secrets/                     # External Secrets
+└── docs/                        # Documentation
 
-## Deployment
+## Deployment Methods
 
-Managed via ArgoCD. See [docs/deployment.md](docs/deployment.md) for details.
+- **Operator**: Installed via Helm or OpenShift OLM
+- **Agents**: Deployed via DatadogAgent CRD
+- **GitOps**: Managed by ArgoCD
 
-## Clusters
+## Quick Start
 
-- **Dev**: dev-ae1 (UAE Development)
-- **Staging**: staging-ae1 (UAE Staging)
-- **Production**: 
-  - prod-ae1 (UAE)
-  - prod-sa1 (Saudi Arabia)
-  - prod-eg1 (Egypt)
-  - [... additional entities]
-
-## Contacts
-
-- **Owner**: Platform Engineering Team
-- **Oncall**: #platform-engineering-oncall
+See [docs/deployment.md](docs/deployment.md)
