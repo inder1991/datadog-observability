@@ -1,0 +1,22 @@
+# Production Operator Configuration
+
+datadog-operator:
+  # HA setup
+  replicaCount: 3
+  
+  # Production resources
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  
+  # Priority class for production
+  priorityClassName: system-cluster-critical
+  
+  # Pod disruption budget
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
