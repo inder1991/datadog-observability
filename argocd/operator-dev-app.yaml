@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: datadog-operator-dev
+  namespace: argocd
+  labels:
+    component: operator
+    env: development
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform-observability
+  
+  source:
+    repoURL: https://github.com/your-org/datadog-operator-deployment.git  # CHANGE THIS
+    targetRevision: main
+    path: operator/base
+    helm:
+      releaseName: datadog-operator
+      valueFiles:
+        - values-base.yaml
+        - ../overlays/dev/values-dev.yaml
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: datadog-operator
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        maxDuration: 3m
