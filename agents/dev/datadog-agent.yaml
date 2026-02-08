@@ -1,0 +1,169 @@
+apiVersion: datadoghq.com/v2alpha1
+kind: DatadogAgent
+metadata:
+  name: datadog
+  namespace: datadog
+  labels:
+    env: development
+    managed-by: platform-engineering
+spec:
+  # Global settings
+  global:
+    clusterName: dev-cluster-1
+    site: datadoghq.com
+    
+    # Credentials from secrets
+    credentials:
+      apiSecret:
+        secretName: datadog-api-key
+        keyName: api-key
+      appSecret:
+        secretName: datadog-app-key
+        keyName: app-key
+    
+    # Global tags
+    tags:
+      - env:development
+      - region:primary
+      - cluster:dev-cluster-1
+      - platform:openshift
+      - managed-by:platform-engineering
+    
+    # Container runtime
+    criSocketPath: /var/run/crio/crio.sock
+    
+    # Kubelet configuration
+    kubelet:
+      tlsVerify: false
+  
+  # Feature flags
+  features:
+    # APM
+    apm:
+      enabled: true
+      hostPortConfig:
+        enabled: true
+        port: 8126
+      unixDomainSocketConfig:
+        enabled: true
+        path: /var/run/datadog/apm.socket
+    
+    # Log collection
+    logCollection:
+      enabled: true
+      containerCollectAll: true  # Dev: collect all logs
+      containerCollectUsingFiles: true
+      containerLogsPath: /var/log/pods
+      podLogsPath: /var/log/pods
+      containerSymlinksPath: /var/log/containers
+    
+    # Live processes
+    liveProcessCollection:
+      enabled: true
+    
+    # Live containers
+    liveContainerCollection:
+      enabled: true
+    
+    # Orchestrator explorer
+    orchestratorExplorer:
+      enabled: true
+      scrubContainers: true
+    
+    # Network monitoring
+    npm:
+      enabled: true
+      enableConntrack: true
+    
+    # Kubernetes events
+    eventCollection:
+      collectKubernetesEvents: true
+    
+    # OTLP (OpenTelemetry)
+    otlp:
+      receiver:
+        protocols:
+          grpc:
+            enabled: false
+          http:
+            enabled: false
+  
+  # Node Agent (DaemonSet) configuration
+  override:
+    nodeAgent:
+      # Resources - lower for dev
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+      
+      # Tolerations to run on all nodes
+      tolerations:
+        - operator: Exists
+      
+      # Host network for NPM
+      hostNetwork: true
+      
+      # Host PID for process collection
+      hostPID: true
+      
+      # Security context
+      securityContext:
+        runAsUser: 0
+        privileged: true
+      
+      # Environment variables
+      env:
+        - name: DD_LOG_LEVEL
+          value: debug  # Verbose in dev
+        - name: DD_CONTAINER_EXCLUDE
+          value: "name:datadog-agent"
+    
+    # Cluster Agent configuration
+    clusterAgent:
+      replicas: 1  # Single replica in dev
+      
+      # Resources
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+      
+      # Metrics provider for HPA
+      metricsProvider:
+        enabled: true
+        useDatadogMetrics: true
+        wpaController: true
+      
+      # Admission controller
+      admissionController:
+        enabled: true
+        mutateUnlabelled: false  # Require opt-in
+        serviceName: datadog-admission-controller
+      
+      # Cluster checks
+      clusterChecksEnabled: true
+      
+      # Environment
+      env:
+        - name: DD_LOG_LEVEL
+          value: debug
+    
+    # Cluster Checks Runner
+    clusterChecksRunner:
+      enabled: true
+      replicas: 1
+      
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
