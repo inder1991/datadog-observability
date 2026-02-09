@@ -1,42 +1,75 @@
-# Datadog Operator Deployment
+# Datadog Observability
 
-GitOps repository for Datadog Operator and DatadogAgent CRD management across multiple clusters.
+Helm charts for managing Datadog dashboards and monitors.
 
-## Architecture┌─────────────────────────────────────────┐
-│         Datadog Operator                │
-│  (Manages DatadogAgent Lifecycle)       │
-└─────────────────────────────────────────┘
+## 📁 Structure
+
+```
+datadog-observability/
+├── dashboards-helm/          # ✅ Ready to use
+│   ├── Chart.yaml
+│   ├── values.yaml
+│   ├── README.md
+│   └── templates/
+│       ├── service-health-dashboard.yaml
+│       └── rum-business-dashboard.yaml
 │
-▼
-┌─────────────────────────────────────────┐
-│      DatadogAgent CRD                   │
-│  (Declarative Agent Configuration)      │
-└─────────────────────────────────────────┘
-│
-▼
-┌─────────────────────────────────────────┐
-│   DaemonSet + Deployments               │
-│  (Actual Datadog Agent Pods)            │
-└─────────────────────────────────────────┘
+└── monitors-helm/            # ✅ Ready to use
+    ├── Chart.yaml
+    ├── values.yaml
+    ├── README.md
+    └── templates/
+        └── latency-monitor.yaml
+```
 
-## Repository Structuredatadog-operator-deployment/
-├── operator/                    # Operator installation
-│   ├── base/                   # Base operator config
-│   └── overlays/               # Environment-specific
-├── agents/                      # DatadogAgent CRDs
-│   ├── dev/
-│   ├── staging/
-│   └── production/
-├── argocd/                      # ArgoCD Applications
-├── secrets/                     # External Secrets
-└── docs/                        # Documentation
+## 🚀 Quick Start
 
-## Deployment Methods
+### Deploy Dashboard for Backend Service
 
-- **Operator**: Installed via Helm or OpenShift OLM
-- **Agents**: Deployed via DatadogAgent CRD
-- **GitOps**: Managed by ArgoCD
+```bash
+cd dashboards-helm
 
-## Quick Start
+helm upgrade --install order-service-dashboards . \
+  --set service.name=order-service \
+  --set environment=prod
+```
 
-See [docs/deployment.md](docs/deployment.md)
+### Deploy Dashboard for Frontend Service
+
+```bash
+helm upgrade --install checkout-frontend-dashboards ./dashboards-helm \
+  --set service.name=checkout-frontend \
+  --set environment=prod \
+  --set dashboards.serviceHealth.enabled=false \
+  --set dashboards.rumBusiness.enabled=true
+```
+
+### Deploy Monitor for Service
+
+```bash
+helm upgrade --install order-service-monitors ./monitors-helm \
+  --set service.name=order-service \
+  --set environment=prod \
+  --set monitors.latency.threshold=2000
+```
+
+## 📊 What's Included
+
+### Dashboards (Ready)
+- ✅ Service Health Dashboard (RED metrics + SRE Golden Signals)
+- ✅ RUM Business Dashboard (Frontend performance metrics)
+
+### Monitors (Ready)
+- ✅ High Latency Monitor (P95)
+
+## 📝 Next Steps
+
+1. **Deploy dashboards** for your services
+2. **Deploy monitors** for alerting
+3. **Verify** in Datadog UI
+4. **Customize thresholds** per environment
+
+## 🔗 Resources
+
+- [Dashboards README](./dashboards-helm/README.md)
+- [Monitors README](./monitors-helm/README.md)

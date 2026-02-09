@@ -1,0 +1,14 @@
+# Service configuration
+service:
+  name: ""  # REQUIRED - your service name
+
+# Environment
+environment: "dev"
+
+# Monitor configuration
+monitors:
+  latency:
+    enabled: true
+    threshold: 2000  # milliseconds (2 seconds)
+    percentile: "p95"
+    evaluationWindow: "5m"

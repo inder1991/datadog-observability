@@ -1,0 +1,14 @@
+apiVersion: v2
+name: datadog-monitors
+description: Datadog Monitors for Microservices
+type: application
+version: 1.0.0
+appVersion: "1.0"
+
+keywords:
+  - datadog
+  - monitors
+  - alerts
+
+maintainers:
+  - name: SRE Team

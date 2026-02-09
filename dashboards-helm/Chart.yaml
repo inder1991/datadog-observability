@@ -1,0 +1,14 @@
+apiVersion: v2
+name: datadog-dashboards
+description: Datadog Dashboards for Microservices
+type: application
+version: 1.0.0
+appVersion: "1.0"
+
+keywords:
+  - datadog
+  - dashboards
+  - observability
+
+maintainers:
+  - name: SRE Team

@@ -1,0 +1,40 @@
+{{- if .Values.monitors.latency.enabled }}
+apiVersion: datadoghq.com/v1alpha1
+kind: DatadogMonitor
+metadata:
+  name: {{ include "monitors.serviceName" . }}-high-latency
+  labels:
+    service: {{ include "monitors.serviceName" . }}
+    monitor-type: apm-latency
+spec:
+  name: "[{{ .Values.environment | upper }}] APM Critical Alert: High Latency ({{ .Values.monitors.latency.percentile | upper }}) - {{ include "monitors.serviceName" . }}"
+  type: "query alert"
+  query: "percentile(last_{{ .Values.monitors.latency.evaluationWindow }}):{{ .Values.monitors.latency.percentile }}:trace.http.request.duration{service:{{ include "monitors.serviceName" . }},env:{{ .Values.environment }}} by {service,env} > {{ .Values.monitors.latency.threshold }}"
+  message: |
+    [CRITICAL] High Latency on {{{{service.name}}}} 
+    
+    The {{ .Values.monitors.latency.percentile | upper }} response time has exceeded {{ .Values.monitors.latency.threshold }}ms for the last {{ .Values.monitors.latency.evaluationWindow }}. 
+    This is impacting the user experience. 
+    
+    **Current Latency**: {{{{value}}}}ms
+    **Threshold**: {{ .Values.monitors.latency.threshold }}ms
+    
+    **Action Required**: 
+    - Check for downstream API timeouts
+    - Review recent deployments
+    - Analyze APM traces for slow operations
+    
+    @slack-alerts
+  tags:
+    - service:{{ include "monitors.serviceName" . }}
+    - env:{{ .Values.environment }}
+    - monitor-type:apm-latency
+  options:
+    thresholds:
+      critical: {{ .Values.monitors.latency.threshold }}
+    notifyAudit: false
+    onMissingData: "default"
+    includeTags: true
+    newGroupDelay: 60
+  priority: 2
+{{- end }}
